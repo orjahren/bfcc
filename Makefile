@@ -16,6 +16,10 @@ test: build test-c
 test-c:
 	@BACKEND=c make test-implementation
 
+# Run the test-cases with both backends
+basic: build 
+	./bfcc examples/hello-world.bf
+
 
 # Actual test cases run here.
 # - For each file "examples/*.bf"
