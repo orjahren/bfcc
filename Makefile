@@ -6,15 +6,11 @@
 
 # Build the application
 build:
-	go build .
+	gcc main.c 
 
 
 # Run the test-cases with both backends
-test: build test-asm test-c
-
-# Test the asm-backend.
-test-asm:
-	@BACKEND=asm make test-implementation
+test: build test-c
 
 # Test the C-backend.
 test-c:
@@ -35,11 +31,10 @@ test-implementation:
                 else  \
 		       ./a.out > x ;\
 		fi ;\
-		diff examples/$${nm}.out x || ( echo "Example failed: $$i"; exit 1 ) ;\
+		diff examples/$${nm}.out x || { echo "Example failed: $$i"; rm x; exit 1; } ;\
 		echo "OK" ; \
 	done
 
 time:
 	make
-	./bfcc -backend=asm examples/mandelbrot.bf ; bash -c "time ./a.out" >/dev/null
-	./bfcc -backend=c   examples/mandelbrot.bf ; bash -c "time ./a.out" >/dev/null
+	./bfcc -backend=c examples/mandelbrot.bf ; bash -c "time ./a.out" >/dev/null
