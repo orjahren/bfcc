@@ -6,7 +6,7 @@
 
 # Build the application
 build:
-	gcc main.c 
+	gcc main.c -o bfcc
 
 
 # Run the test-cases with both backends
