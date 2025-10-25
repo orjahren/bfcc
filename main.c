@@ -47,43 +47,35 @@ void interpretBfSource(char *sourceCode, char *memory)
         switch (c)
         {
 
-            // < = decreases memory pointer, or moves the pointer to the left 1 block.
-        case '<':
+        case '<': // < decreases memory pointer, or moves the pointer to the left 1 block.
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             break;
-            // > = increases memory pointer, or moves the pointer to the right 1 block.
-        case '>':
+        case '>': // > increases memory pointer, or moves the pointer to the right 1 block.
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             break;
-            // + = increases value stored at the block pointed to by the memory pointer
-        case '+':
+        case '+': // + increases value stored at the block pointed to by the memory pointer
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             break;
-            // - = decreases value stored at the block pointed to by the memory pointer
-        case '-':
+        case '-': // - decreases value stored at the block pointed to by the memory pointer
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             break;
-            // [ = like c while(cur_block_value != 0) loop.
-        case '[':
+        case '[': // [ like c while(cur_block_value != 0) loop.
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             break;
-            // ] = if block currently pointed to's value is not zero, jump back to [
-        case ']':
+        case ']': // ] if block currently pointed to's value is not zero, jump back to [
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             break;
-            // , = like c getchar(). input 1 character.
-        case ',':
+        case ',': // , like c getchar(). input 1 character.
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             break;
-            // . = like c putchar(). print 1 character to the console
-        case '.':
+        case '.': // . like c putchar(). print 1 character to the console
             if (DEBUG)
                 printf("Switch case for char %c\n", c);
             char memVal = memory[memIdx];
