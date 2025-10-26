@@ -23,6 +23,7 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
     int loopStartIdx = -1;
     char curVal;
 
+    // TODO: Trenger man egt 2 lister?? Hva med å bare ha en stack hvor man lagrer [-posisjoner, og så bare popper man stacken for hver ] og går til den lagrede posisjonen
     // We represent BF loops with symmetric lists, where each index in the lists correspond to loop indeces.
     struct Node *loopStarts = NULL; // Only instanciate the list if we have data for it.
     struct Node *loopEnds = NULL;   // Only instanciate the list if we have data for it.
