@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#define DEBUG_HELPERS 0
+
 // "file to string" borrowed from https://stackoverflow.com/a/174552
 char *fileNameToContentString(char *fileName)
 {
@@ -46,69 +48,28 @@ char *initBrainFuckMemory(int numBytes)
 
 struct Node
 {
-    char data;
+    int data;
     struct Node *next;
 };
-struct Node *newLinkedList()
+struct Node *newNode(int data)
 {
-    struct Node *root = malloc(sizeof(struct Node));
-    if (root == NULL)
+    struct Node *node = malloc(sizeof(struct Node));
+    if (node == NULL)
     {
-        printf("Unable to allocate memory for new LL node\n");
+        printf("Unable to allocate memory for new node\n");
         exit(1);
     }
-    root->next = NULL;
-    return root;
+    node->next = NULL;
+    node->data = data;
+    return node;
 }
 
-int getListLength(struct Node *root)
+void printStack(struct Node *root)
 {
     struct Node *ptr = root;
-    int len = 0;
-    while (ptr != NULL)
-    {
-        ptr = ptr->next;
-        len++;
-    }
-    printf("Found len %d\n", len);
-    return len;
-}
-
-struct Node *getPenultimateNode(struct Node *root)
-{
-    struct Node *ptr = root;
-    struct Node *prev = NULL;
-    while (ptr != NULL)
-    {
-        prev = ptr;
-        ptr = ptr->next;
-    }
-    return prev;
-}
-
-struct Node *appendToLinkedList(struct Node *root, char data)
-{
-    struct Node *penultimate = getPenultimateNode(root);
-
-    struct Node *tail = penultimate->next;
-
-    struct Node *newNode = newLinkedList();
-    if (tail == NULL)
-    {
-        penultimate->next = newNode;
-    }
-    else
-    {
-        tail->next = newNode;
-    }
-
-    return newNode;
-}
-
-void printLinkedList(struct Node *root)
-{
-    struct Node *ptr = root;
-    printf("Linkedlist with root @ %x: { ", root);
+    if (!DEBUG_HELPERS)
+        return;
+    printf("Stack with root @ 0x%x: { ", root);
     while (ptr != NULL)
     {
         char data = ptr->data;
@@ -119,45 +80,39 @@ void printLinkedList(struct Node *root)
     printf(" }\n");
 }
 
-char popLinkedList(struct Node *root)
+int peekStack(struct Node *root)
 {
-    int len = getListLength(root);
-    // TODO: Is handling this case needed? Why not simply never pop empty lists?
-    if (len == 0)
+    if (DEBUG_HELPERS)
+        printf("Peeker stack 0x%x\n", root);
+    if (root == NULL)
     {
-        printf("\tWARN: Popped from empty list\n");
-        return 0;
+        printf("Illegal state: Attempted to peek empty stack.\n");
+        exit(1);
     }
-    else if (len == 1)
+    printStack(root);
+    return root->data;
+}
+
+struct Node *popStack(struct Node *root)
+{
+    if (root == NULL)
     {
-        char ret = root->data;
-        free(root);
-        return ret;
+        printf("Illegal state: Attempted to pop empty stack.\n");
+        exit(1);
     }
-    // At this point, length must be at least 2
-
-    // First, find final and penultimate nodes
-    struct Node *penultimate = getPenultimateNode(root);
-    printf("Penultimate is @ mem adr %x\n", penultimate);
-    struct Node *oldTail = penultimate->next;
-    printf("Tail is @ mem adr %x\n", oldTail);
-
-    if (oldTail == NULL || penultimate == NULL)
-    {
-        printf("Critical error in linked list popping :/\n");
-        printLinkedList(root);
-    }
-
-    printf("Found pen and old tail\n");
-
-    // Pop last from list. Decouple "oldTail".
-    printf("Wiping 'next' of penultimate node\n");
-    penultimate->next = NULL;
-    printf("Persisting data from tail\n");
-    char ret = oldTail->data;
-    printf("Freeing tail\n");
-    free(oldTail);
-    printf("Popped finely :)\n");
-    // Return removed data
+    struct Node *ret = root->next;
+    free(root);
     return ret;
+}
+
+struct Node *pushStack(struct Node *root, struct Node *nn)
+{
+    if (DEBUG_HELPERS)
+        printf("Skal pushe til 0x%x\n", root);
+    if (root == NULL)
+    {
+        return nn;
+    }
+    nn->next = root;
+    return nn;
 }

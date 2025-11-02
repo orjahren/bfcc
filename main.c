@@ -5,7 +5,7 @@
 
 #define LINE_LENGTH 300
 #define MEMORY_BYTES 30000 // 30_000
-#define DEBUG 1
+#define DEBUG 0
 
 void printCurrentMemory(char *bfMemory, int memIdx)
 {
@@ -20,31 +20,39 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
     }
 
     int memIdx = 0;
-    int loopStartIdx = -1;
-    char curVal;
+    int instructionIndex = 0;
 
-    // TODO: Trenger man egt 2 lister?? Hva med å bare ha en stack hvor man lagrer [-posisjoner, og så bare popper man stacken for hver ] og går til den lagrede posisjonen
-    // We represent BF loops with symmetric lists, where each index in the lists correspond to loop indeces.
-    struct Node *loopStarts = NULL; // Only instanciate the list if we have data for it.
-    struct Node *loopEnds = NULL;   // Only instanciate the list if we have data for it.
+    struct Node *memoryIdxStack = NULL;
+    struct Node *instructionIdxStack = NULL;
 
-    for (int i = 0; i < sourceLen; i++)
+    // for (int i = 0; i < sourceLen; i++)
+    while (instructionIndex < sourceLen)
     {
+
+        if (instructionIndex < 0)
+        {
+            printf("CRITICAL: Illegal state, instruction pointer is %d\n", instructionIndex);
+            exit(1);
+        }
+
+        char dontIncrementIpr = 0;
         // Not strictly an operator, might also be ignored symbol
-        char operator = sourceCode[i];
+        char operator = sourceCode[instructionIndex];
         if (DEBUG)
-            printf("Char is %c\n", operator);
+            printf("\t\t--- Instruction idx: %d, mem idx: %d, operator at idx: %c --- \n", instructionIndex, memIdx, operator);
 
         switch (operator)
         {
 
         case '<': // < decreases memory pointer, or moves the pointer to the left 1 block.
             // TODO: How should we handle wrapping around the memory?
-            memIdx = (memIdx - 1) % MEMORY_BYTES;
+            memIdx--;
+            // memIdx = (memIdx - 1) % MEMORY_BYTES;
             break;
         case '>': // > increases memory pointer, or moves the pointer to the right 1 block.
             // TODO: How should we handle wrapping around the memory?
-            memIdx = (memIdx + 1) % MEMORY_BYTES;
+            memIdx++;
+            // memIdx = (memIdx + 1) % MEMORY_BYTES;
             break;
         case '+': // + increases value stored at the block pointed to by the memory pointer
             bfMemory[memIdx]++;
@@ -53,44 +61,52 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
             bfMemory[memIdx]--;
             break;
         case '[': // [ like c while(cur_block_value != 0) loop.
-            printCurrentMemory(bfMemory, memIdx);
+            if (DEBUG)
+                printCurrentMemory(bfMemory, memIdx);
 
-            printf("Resultatet er: %c\n", bfMemory[memIdx] != 0);
+            if (DEBUG)
+                printf("Resultatet er: %d\n", bfMemory[memIdx] != 0);
 
             if (bfMemory[memIdx] != 0)
             {
 
-                printf("Mem is not 0, init loop\n");
-                if (loopStarts == NULL)
-                {
-                    loopStarts = newLinkedList();
-                    loopStarts->data = memIdx;
-                }
-                else
-                {
-                    appendToLinkedList(loopStarts, memIdx);
-                }
+                if (DEBUG)
+                    printf("Mem is not 0, init loop for instruction idx %d and mem idx %d\n", instructionIndex, memIdx);
+                memoryIdxStack = pushStack(memoryIdxStack, newNode(memIdx));
+                instructionIdxStack = pushStack(instructionIdxStack, newNode(instructionIndex));
             }
             else
             {
-                printf("No loop, will pop lists\n");
-                popLinkedList(loopStarts);
-                popLinkedList(loopEnds);
+                if (DEBUG)
+                    printf("No loop\n");
+                // memoryIdxStack = popStack(memoryIdxStack);
+                // instructionIdxStack = popStack(instructionIdxStack);
             }
-            printf("Breaker\n");
+            if (DEBUG)
+                printf("Breaker\n");
             break;
         case ']': // ] if block currently pointed to's value is not zero, jump back to [
             if (bfMemory[memIdx] != 0)
             {
-                printf("Mem is not 0, loop back\n");
-                struct Node *jumpTo = getPenultimateNode(loopStarts);
-                memIdx = jumpTo->data;
+                if (DEBUG)
+                    printf("Mem is not 0 (%d), loop back\n", bfMemory[memIdx]);
+                memIdx = peekStack(memoryIdxStack);
+                if (DEBUG)
+                    printf("Set Mem idx to %d\n", memIdx);
+                instructionIndex = peekStack(instructionIdxStack);
+                if (DEBUG)
+                    printf("Set instruciton idx to %d\n", instructionIndex);
+                dontIncrementIpr = 1;
+                // jumpStack = popStack(jumpStack);
+                memoryIdxStack = popStack(memoryIdxStack);
+                instructionIdxStack = popStack(instructionIdxStack);
             }
             else
             {
-                printf("Mem IS 0, pop loop lists\n");
-                popLinkedList(loopStarts);
-                popLinkedList(loopEnds);
+                if (DEBUG)
+                    printf("Mem IS 0, pop jump stack\n");
+                memoryIdxStack = popStack(memoryIdxStack);
+                instructionIdxStack = popStack(instructionIdxStack);
             }
             break;
         case ',': // , like c getchar(). input 1 character.
@@ -99,7 +115,7 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
         case '.': // . like c putchar(). print 1 character to the console
             char memVal = bfMemory[memIdx];
             if (DEBUG)
-                printCurrentMemory(bfMemory, memIdx);
+                printf("Putchar: %d/0x%x\n", memVal, memVal);
             putchar(memVal);
             break;
 
@@ -108,12 +124,15 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
             if (DEBUG)
                 printf("Ignoring char %c\n", operator);
         }
+        if (!dontIncrementIpr)
+            instructionIndex++;
+        if (instructionIndex >= sourceLen)
+            break;
     }
 }
 
 int main(int argc, char **argv)
 {
-    printf("Implementation is TODO!\n");
 
     char *fileName = argv[1];
     if (DEBUG)
