@@ -95,6 +95,7 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
             }
             else
             {
+                // TODO: Denne skal HOPPE FREM til sammensvarende ]
                 if (DEBUG)
                     printf("Mem IS 0, pop jump stack\n");
                 instructionIdxStack = popStack(instructionIdxStack);
