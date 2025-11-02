@@ -72,7 +72,7 @@ void printStack(struct Node *root)
     printf("Stack with root @ 0x%x: { ", root);
     while (ptr != NULL)
     {
-        char data = ptr->data;
+        int data = ptr->data;
         printf(" %d ", data);
 
         ptr = ptr->next;
