@@ -19,10 +19,58 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
         printf("Source has %d chars\n", sourceLen);
     }
 
+    // Precompute jumps from [ to its ] and vice-verca
+    // TODO: This will be very sparse. Should consolidate memory usage?
+    int jumpMap[sourceLen];
+    for (int i = 0; i < sourceLen; i++)
+    {
+        // Init to -1 to flag bugs more easily
+        jumpMap[i] = -1;
+    }
+    // TODO: Optimize this
+    for (int i = 0; i < sourceLen; i++)
+    {
+        if (sourceCode[i] == '[')
+        {
+            if (DEBUG)
+                printf("Found [ at pos %d\n", i);
+            int othersFound = 0;
+            for (int scanIdx = i + 1; scanIdx < sourceLen; scanIdx++)
+            {
+                if (sourceCode[scanIdx] == '[')
+                {
+                    othersFound++;
+                }
+                else if (sourceCode[scanIdx] == ']')
+                {
+                    if (othersFound == 0)
+                    {
+                        if (DEBUG)
+                            printf("Its jump to ] is at pos %d\n", scanIdx);
+                        jumpMap[i] = scanIdx;
+                        jumpMap[scanIdx] = i;
+                        break;
+                    }
+                    else
+                    {
+                        othersFound--;
+                    }
+                }
+            }
+        }
+    }
+    if (DEBUG)
+    {
+        printf("Precomputed jump map:\n{ ");
+        for (int i = 0; i < sourceLen; i++)
+        {
+            printf(" %d ", jumpMap[i]);
+        }
+        printf("}\n");
+    }
+
     int memIdx = 0;
     int instructionIndex = 0;
-
-    struct Node *instructionIdxStack = NULL;
 
     // for (int i = 0; i < sourceLen; i++)
     while (instructionIndex < sourceLen)
@@ -66,17 +114,11 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
             if (DEBUG)
                 printf("Resultatet er: %d\n", bfMemory[memIdx] != 0);
 
-            if (bfMemory[memIdx] != 0)
-            {
-
-                if (DEBUG)
-                    printf("Mem is not 0, init loop for instruction idx %d and mem idx %d\n", instructionIndex, memIdx);
-                instructionIdxStack = pushStack(instructionIdxStack, newNode(instructionIndex));
-            }
-            else
+            if (bfMemory[memIdx] == 0)
             {
                 if (DEBUG)
                     printf("No loop\n");
+                instructionIndex = jumpMap[instructionIndex];
                 // instructionIdxStack = popStack(instructionIdxStack);
             }
             if (DEBUG)
@@ -87,18 +129,15 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
             {
                 if (DEBUG)
                     printf("Mem is not 0 (%d), loop back\n", bfMemory[memIdx]);
-                instructionIndex = peekStack(instructionIdxStack);
+                instructionIndex = jumpMap[instructionIndex];
                 if (DEBUG)
                     printf("Set instruciton idx to %d\n", instructionIndex);
-                dontIncrementIpr = 1;
-                instructionIdxStack = popStack(instructionIdxStack);
             }
             else
             {
                 // TODO: Denne skal HOPPE FREM til sammensvarende ]
                 if (DEBUG)
                     printf("Mem IS 0, pop jump stack\n");
-                instructionIdxStack = popStack(instructionIdxStack);
             }
             break;
         case ',': // , like c getchar(). input 1 character.
