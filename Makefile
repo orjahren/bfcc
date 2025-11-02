@@ -14,11 +14,11 @@ test: build test-c
 
 # Test the C-backend.
 test-c:
-	@BACKEND=c make test-implementation
+	make test-implementation
 
 # Run the test-cases with both backends
 basic: build 
-	./bfcc examples/hello-world.bf
+	diff <(./bfcc examples/hello-world.bf) examples/hello-world.out
 
 
 # Actual test cases run here.
@@ -27,13 +27,13 @@ basic: build
 # - Compare the output to that expected within the corresponding ".out" file.
 test-implementation:
 	@for i in examples/*.bf; do \
-		echo -n "Running test [backend: $$BACKEND] $$i " ; \
+		echo -n "Running test $$i " ; \
 		nm=$$(basename $$i .bf) ;\
-		./bfcc -backend=${BACKEND} $$i ; \
+		./bfcc $$i ; \
 		if [ -e examples/$${nm}.in ] ; then  \
-                       cat examples/$${nm}.in | ./a.out > x ; \
+                       cat examples/$${nm}.in | ./bfcc $$i > x ; \
                 else  \
-		       ./a.out > x ;\
+		       ./bfcc $$i > x ;\
 		fi ;\
 		diff examples/$${nm}.out x || { echo "Example failed: $$i"; rm x; exit 1; } ;\
 		echo "OK" ; \
