@@ -22,7 +22,6 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
     int memIdx = 0;
     int instructionIndex = 0;
 
-    struct Node *memoryIdxStack = NULL;
     struct Node *instructionIdxStack = NULL;
 
     // for (int i = 0; i < sourceLen; i++)
@@ -72,14 +71,12 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
 
                 if (DEBUG)
                     printf("Mem is not 0, init loop for instruction idx %d and mem idx %d\n", instructionIndex, memIdx);
-                memoryIdxStack = pushStack(memoryIdxStack, newNode(memIdx));
                 instructionIdxStack = pushStack(instructionIdxStack, newNode(instructionIndex));
             }
             else
             {
                 if (DEBUG)
                     printf("No loop\n");
-                // memoryIdxStack = popStack(memoryIdxStack);
                 // instructionIdxStack = popStack(instructionIdxStack);
             }
             if (DEBUG)
@@ -90,22 +87,16 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
             {
                 if (DEBUG)
                     printf("Mem is not 0 (%d), loop back\n", bfMemory[memIdx]);
-                memIdx = peekStack(memoryIdxStack);
-                if (DEBUG)
-                    printf("Set Mem idx to %d\n", memIdx);
                 instructionIndex = peekStack(instructionIdxStack);
                 if (DEBUG)
                     printf("Set instruciton idx to %d\n", instructionIndex);
                 dontIncrementIpr = 1;
-                // jumpStack = popStack(jumpStack);
-                memoryIdxStack = popStack(memoryIdxStack);
                 instructionIdxStack = popStack(instructionIdxStack);
             }
             else
             {
                 if (DEBUG)
                     printf("Mem IS 0, pop jump stack\n");
-                memoryIdxStack = popStack(memoryIdxStack);
                 instructionIdxStack = popStack(instructionIdxStack);
             }
             break;
