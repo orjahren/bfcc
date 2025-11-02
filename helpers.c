@@ -116,3 +116,57 @@ struct Node *pushStack(struct Node *root, struct Node *nn)
     nn->next = root;
     return nn;
 }
+
+int *precomputeJumpMap(char *sourceCode, int sourceLen)
+{
+    // TODO: This will be very sparse. Should consolidate memory usage?
+    int *jumpMap = malloc(sizeof(int) * sourceLen);
+    // int jumpMap[sourceLen];
+    for (int i = 0; i < sourceLen; i++)
+    {
+        // Init to -1 to flag bugs more easily
+        jumpMap[i] = -1;
+    }
+    // TODO: Optimize this
+    for (int i = 0; i < sourceLen; i++)
+    {
+        if (sourceCode[i] == '[')
+        {
+            if (DEBUG_HELPERS)
+                printf("Found [ at pos %d\n", i);
+            int othersFound = 0;
+            for (int scanIdx = i + 1; scanIdx < sourceLen; scanIdx++)
+            {
+                if (sourceCode[scanIdx] == '[')
+                {
+                    othersFound++;
+                }
+                else if (sourceCode[scanIdx] == ']')
+                {
+                    if (othersFound == 0)
+                    {
+                        if (DEBUG_HELPERS)
+                            printf("Its jump to ] is at pos %d\n", scanIdx);
+                        jumpMap[i] = scanIdx;
+                        jumpMap[scanIdx] = i;
+                        break;
+                    }
+                    else
+                    {
+                        othersFound--;
+                    }
+                }
+            }
+        }
+    }
+    if (DEBUG_HELPERS)
+    {
+        printf("Precomputed jump map:\n{ ");
+        for (int i = 0; i < sourceLen; i++)
+        {
+            printf(" %d ", jumpMap[i]);
+        }
+        printf("}\n");
+    }
+    return jumpMap;
+}

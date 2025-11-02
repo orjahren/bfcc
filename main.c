@@ -6,7 +6,7 @@
 #define MEMORY_BYTES 30000 // 30_000
 #define DEBUG 0
 
-void interpretBfSource(char *sourceCode, char *bfMemory)
+void interpretBfSource(char *sourceCode)
 {
     int sourceLen = strlen(sourceCode);
     if (DEBUG)
@@ -14,55 +14,9 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
         printf("Source has %d chars\n", sourceLen);
     }
 
+    char *bfMemory = initBrainFuckMemory(MEMORY_BYTES);
     // Precompute jumps from [ to its ] and vice-verca
-    // TODO: This will be very sparse. Should consolidate memory usage?
-    int jumpMap[sourceLen];
-    for (int i = 0; i < sourceLen; i++)
-    {
-        // Init to -1 to flag bugs more easily
-        jumpMap[i] = -1;
-    }
-    // TODO: Optimize this
-    for (int i = 0; i < sourceLen; i++)
-    {
-        if (sourceCode[i] == '[')
-        {
-            if (DEBUG)
-                printf("Found [ at pos %d\n", i);
-            int othersFound = 0;
-            for (int scanIdx = i + 1; scanIdx < sourceLen; scanIdx++)
-            {
-                if (sourceCode[scanIdx] == '[')
-                {
-                    othersFound++;
-                }
-                else if (sourceCode[scanIdx] == ']')
-                {
-                    if (othersFound == 0)
-                    {
-                        if (DEBUG)
-                            printf("Its jump to ] is at pos %d\n", scanIdx);
-                        jumpMap[i] = scanIdx;
-                        jumpMap[scanIdx] = i;
-                        break;
-                    }
-                    else
-                    {
-                        othersFound--;
-                    }
-                }
-            }
-        }
-    }
-    if (DEBUG)
-    {
-        printf("Precomputed jump map:\n{ ");
-        for (int i = 0; i < sourceLen; i++)
-        {
-            printf(" %d ", jumpMap[i]);
-        }
-        printf("}\n");
-    }
+    int *jumpMap = precomputeJumpMap(sourceCode, sourceLen);
 
     int memIdx = 0;
     int instructionIndex = 0;
@@ -75,7 +29,6 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
             exit(1);
         }
 
-        char dontIncrementIpr = 0;
         // Not strictly an operator, might also be ignored symbol
         char operator = sourceCode[instructionIndex];
         if (DEBUG)
@@ -116,6 +69,8 @@ void interpretBfSource(char *sourceCode, char *bfMemory)
                 printf("Ignoring char %c\n", operator);
         }
     } while (instructionIndex++ < sourceLen);
+    free(jumpMap);
+    free(bfMemory);
 }
 
 int main(int argc, char **argv)
@@ -125,8 +80,6 @@ int main(int argc, char **argv)
     if (DEBUG)
         printf("Input file name is %s\n", fileName);
 
-    char *bfMemory = initBrainFuckMemory(MEMORY_BYTES);
-
     char *fileContent = fileNameToContentString(fileName);
 
     if (DEBUG)
@@ -134,7 +87,7 @@ int main(int argc, char **argv)
 
     if (DEBUG)
         printf("Will interpret.\n");
-    interpretBfSource(fileContent, bfMemory);
+    interpretBfSource(fileContent);
     if (DEBUG)
         printf("Done :)\n");
 
